@@ -1,0 +1,17 @@
+{
+  "name": "小熊拼图书",
+  "short_name": "拼图书",
+  "description": "给两三岁小朋友玩的拼图游戏，可离线使用",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#eccb9f",
+  "theme_color": "#eccb9f",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
