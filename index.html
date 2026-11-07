@@ -655,11 +655,13 @@ const $=s=>document.querySelector(s);
 const store={get(k,d){try{const v=localStorage.getItem('pzb_'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('pzb_'+k,JSON.stringify(v));}catch(e){}}};
 const state={sc:0,lv:Math.min(2,Math.max(0,+store.get('lv',0)||0)),sound:store.get('sound',true),ghost:false,done:store.get('done',{})};
 let AC=null;
-function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f,d=.15,type='sine',v=.2,t0=0){if(!state.sound)return;const a=ac();if(!a)return;const o=a.createOscillator(),gn=a.createGain(),t=a.currentTime+t0;o.type=type;o.frequency.value=f;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(v,t+.01);gn.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(gn).connect(a.destination);o.start(t);o.stop(t+d+.05);}
-const sfx={good:()=>{[784,988,1319].forEach((f,i)=>tone(f,.16,'triangle',.2,i*.07));tone(1568,.3,'sine',.12,.22);},pick:()=>tone(520,.08,'triangle',.14),snap:()=>{tone(784,.12,'sine',.25);tone(1046,.2,'sine',.2,.07);},drop:()=>tone(330,.08,'sine',.08),
-  win:()=>[523,659,784,1046,784,1046].forEach((f,i)=>tone(f,.22,'triangle',.2,i*.12))};
-function say(t){if(!state.sound)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';u.rate=.9;u.pitch=1.15;speechSynthesis.speak(u);}catch(e){}}
+let OUT=null;
+function ac(){if(!AC){try{try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}AC=new (window.AudioContext||window.webkitAudioContext)();
+  const pre=AC.createGain(),lim=AC.createDynamicsCompressor();pre.gain.value=2.2;lim.threshold.value=-8;lim.knee.value=4;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;pre.connect(lim).connect(AC.destination);OUT=pre;}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f,d=.15,type='sine',v=.2,t0=0){if(!state.sound)return;const a=ac();if(!a)return;const o=a.createOscillator(),gn=a.createGain(),t=a.currentTime+t0;o.type=type;o.frequency.value=f;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(v,t+.01);gn.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(gn).connect(OUT||a.destination);o.start(t);o.stop(t+d+.05);}
+const sfx={good:()=>{[784,988,1319].forEach((f,i)=>{tone(f,.22,'triangle',.45,i*.07);tone(f,.18,'square',.06,i*.07);});tone(1568,.4,'sine',.3,.22);},pick:()=>tone(660,.1,'triangle',.4),snap:()=>{tone(784,.16,'triangle',.5);tone(1046,.26,'triangle',.45,.07);},drop:()=>tone(440,.1,'triangle',.25),
+  win:()=>[523,659,784,1046,784,1046].forEach((f,i)=>{tone(f,.3,'triangle',.5,i*.12);tone(f,.24,'square',.07,i*.12);})};
+function say(t){if(!state.sound)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';u.rate=.9;u.pitch=1.15;u.volume=1;speechSynthesis.speak(u);}catch(e){}}
 let toastT;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),1600);}
 document.addEventListener('pointerdown',ac,{once:true,capture:true});
 document.addEventListener('gesturestart',e=>e.preventDefault());
@@ -842,7 +844,7 @@ function check(){
 let NB=null;
 function boom(){if(!state.sound)return;const a=ac();if(!a)return;
   if(!NB){NB=a.createBuffer(1,Math.floor(a.sampleRate*.6),a.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);}
-  const s=a.createBufferSource(),gn=a.createGain(),f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=700+Math.random()*600;s.buffer=NB;gn.gain.value=.4;s.connect(f).connect(gn).connect(a.destination);s.start();}
+  const s=a.createBufferSource(),gn=a.createGain(),f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=700+Math.random()*600;s.buffer=NB;gn.gain.value=.9;s.connect(f).connect(gn).connect(OUT||a.destination);s.start();}
 function firework(x,y){const pal=[COLS[Math.random()*6|0],COLS[Math.random()*6|0],'#fff59d'];
   for(let i=0;i<110;i++){const a=Math.random()*Math.PI*2,v=1.2+Math.pow(Math.random(),.6)*4.2;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-.6,g:.05,drag:.968,s:2.6+Math.random()*1.8,rot:0,vr:0,c:pal[i%3],life:95+Math.random()*45,tr:true,tw:true});}
   boom();fxKick();}
