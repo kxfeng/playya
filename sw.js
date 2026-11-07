@@ -1,5 +1,5 @@
 // Bump VERSION whenever any cached file changes so devices pick up the update.
-const VERSION = 'pzb-v1';
+const VERSION = 'pzb-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
